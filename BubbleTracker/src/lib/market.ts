@@ -1,31 +1,43 @@
+import type { MarketSnapshot, Quote } from "../types/marketType";
+export type { MarketSnapshot, Quote } from "../types/marketType";
 
-
-export type Quote = { 
-    ticker: string;
-    price: number;
-    prevClose: number;
-    changePct: number;
-    timeStamp: number;
-};
-
-export type MarketSnapshot = {
-    quotes: Record<string, Quote>;
-    asOf: number;
-    provider: string;
-    error?: string;
-};
+import { fetchFromFinnhub } from "./providers/finnhub.ts";
+import { fetchFromMock } from "./providers/mock.ts";
 
 export const TICKERS: string[] = [
   "MSFT","NVDA","ORCL","AMD","COIN","HOOD","RIOT","MARA","MSTR",
   "ARM","CRUS","RDDT","CCJ","XOM","NEM","GOLD","AMLP"
 ];
 
-const PROVIDER = import.meta.env.VITE_MARKET_PROVIDER ?? "finnhub"; 
-const FINNHUB_KEY = import.meta.env.VITE_FINNHUB_KEY ?? "";
+// --- provider selection ---
+const PROVIDERS = ["finnhub", "mock"] as const;
+export type Provider = typeof PROVIDERS[number];
 
-export async function fetchSnapshot(tickerds: string[]) : Promise<MarketSnapshot> {
-    if (PROVIDER === "mock") return mockSnapshot(tickers);
-    return fetchFromFinnhub(tickers);
+const PROVIDER = (import.meta.env.VITE_MARKET_PROVIDER ?? "finnhub") as Provider;
 
-
+/**
+ * Single entry point: fetch a normalized snapshot for the given tickers.
+ * Default to TICKERS; switch provider by env.
+ */
+export async function fetchSnapshot(
+  tickers: string[] = TICKERS,
+  opts?: { signal?: AbortSignal }
+): Promise<MarketSnapshot> {
+  try {
+    switch (PROVIDER) {
+      case "mock":
+        return fetchFromMock(tickers);
+      case "finnhub":
+      default:
+        return await fetchFromFinnhub(tickers, opts);
+    }
+  } catch (err: any) {
+    // Uniform error shape so UI never crashes
+    return {
+      quotes: {},
+      asOf: Date.now(),
+      provider: PROVIDER,
+      error: String(err?.message ?? err),
+    };
+  }
 }
