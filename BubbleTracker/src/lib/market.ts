@@ -14,6 +14,7 @@ const PROVIDERS = ["finnhub", "mock"] as const;
 export type Provider = typeof PROVIDERS[number];
 
 const PROVIDER = (import.meta.env.VITE_MARKET_PROVIDER ?? "finnhub") as Provider;
+console.log("PROVIDER =", import.meta.env.VITE_MARKET_PROVIDER);
 
 /**
  * Single entry point: fetch a normalized snapshot for the given tickers.
