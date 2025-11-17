@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMarketData } from "../assets/lib/useMarketData";
 import type { Quote } from "../types/marketType";
 import { TICKERS } from "../lib/market";
-import { TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, ArrowUpRight } from "lucide-react";
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -16,7 +17,16 @@ function computeHeat(quotes: Record<string, Quote>): number {
   return clamp(avg, -5, 5);
 }
 
+function getHeatLabel(heat: number): string {
+  if (heat >= 3) return "Very hot";
+  if (heat >= 1) return "Heating up";
+  if (heat >= -1) return "Balanced";
+  if (heat >= -3) return "Cooling";
+  return "Risk-off";
+}
+
 export function AIBubbleDashboard() {
+  const navigate = useNavigate();
   const { snapshot, loading, error } = useMarketData({
     intervalMs: 15000, // 15s polling
     tickers: TICKERS,
@@ -61,236 +71,222 @@ export function AIBubbleDashboard() {
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
 
+  const heatLabel = getHeatLabel(heat);
+
   return (
-    <div className="min-h-screen bg-stone-50 text-slate-900 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-8 pb-6 border-b-4 border-slate-900">
-          <h1
-            className="text-4xl md:text-5xl font-bold mb-2 text-slate-900"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
+        <div className="text-center mb-12">
+          <h1 className="text-5xl md:text-6xl font-bold mb-3 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             AI Bubble Tracker
           </h1>
-          <p
-            className="text-base md:text-lg text-slate-600 italic"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
+          <p className="text-slate-400 text-lg">
             One bubble. The AI complex. Live.
           </p>
+          {asOf > 0 && (
+            <p className="text-slate-500 text-sm mt-2">
+              Last updated {new Date(asOf).toLocaleTimeString()}
+            </p>
+          )}
         </div>
 
-        {/* Top row: bubble + stats */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Bubble */}
-          <div className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 backdrop-blur-sm border-2 border-cyan-500/30 rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-purple-900/10 to-transparent" />
+        {/* Hero Section: Bubble + Heat Stats */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-12">
+          {/* Bubble Hero */}
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl p-8 flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10" />
+            <div className="relative z-10 flex flex-col items-center">
+              <svg
+                width={bubbleSize}
+                height={bubbleSize}
+                viewBox="0 0 200 200"
+                className="transition-all duration-500 ease-out"
+                style={{
+                  filter:
+                    "drop-shadow(0 0 40px rgba(6, 182, 212, 0.6)) drop-shadow(0 0 60px rgba(168, 85, 247, 0.5))",
+                }}
+              >
+                {/* Outer glow */}
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="95"
+                  fill="url(#bubbleGradient)"
+                  opacity="0.4"
+                  className="animate-pulse"
+                />
+                {/* Main bubble */}
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="85"
+                  fill="url(#bubbleGradient)"
+                  stroke="url(#bubbleStroke)"
+                  strokeWidth="2"
+                  opacity="0.9"
+                />
+                {/* Highlights */}
+                <ellipse
+                  cx="75"
+                  cy="70"
+                  rx="30"
+                  ry="35"
+                  fill="white"
+                  opacity="0.4"
+                />
+                <ellipse
+                  cx="75"
+                  cy="70"
+                  rx="15"
+                  ry="20"
+                  fill="white"
+                  opacity="0.6"
+                />
+                {/* Rainbow ring */}
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="85"
+                  fill="none"
+                  stroke="url(#rainbow)"
+                  strokeWidth="3"
+                  opacity="0.7"
+                  className="animate-pulse"
+                />
 
-            <svg
-              width={bubbleSize}
-              height={bubbleSize}
-              viewBox="0 0 200 200"
-              className="transition-all duration-300 ease-out"
-              style={{
-                filter:
-                  "drop-shadow(0 0 30px rgba(6, 182, 212, 0.5)) drop-shadow(0 0 50px rgba(168, 85, 247, 0.4))",
-              }}
-            >
-              {/* Outer glow */}
-              <circle
-                cx="100"
-                cy="100"
-                r="95"
-                fill="url(#bubbleGradient)"
-                opacity="0.3"
-                className="animate-pulse"
-              />
-              {/* Main bubble */}
-              <circle
-                cx="100"
-                cy="100"
-                r="85"
-                fill="url(#bubbleGradient)"
-                stroke="url(#bubbleStroke)"
-                strokeWidth="2"
-                opacity="0.9"
-              />
-              {/* Highlights */}
-              <ellipse
-                cx="75"
-                cy="70"
-                rx="30"
-                ry="35"
-                fill="white"
-                opacity="0.35"
-              />
-              <ellipse
-                cx="75"
-                cy="70"
-                rx="15"
-                ry="20"
-                fill="white"
-                opacity="0.55"
-              />
+                <defs>
+                  <radialGradient id="bubbleGradient">
+                    <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.5" />
+                    <stop offset="50%" stopColor="#a855f7" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#ec4899" stopOpacity="0.6" />
+                  </radialGradient>
+                  <linearGradient id="bubbleStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#06b6d4" />
+                    <stop offset="50%" stopColor="#a855f7" />
+                    <stop offset="100%" stopColor="#ec4899" />
+                  </linearGradient>
+                  <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ff0080" />
+                    <stop offset="25%" stopColor="#ff8c00" />
+                    <stop offset="50%" stopColor="#40e0d0" />
+                    <stop offset="75%" stopColor="#9370db" />
+                    <stop offset="100%" stopColor="#ff0080" />
+                  </linearGradient>
+                </defs>
+              </svg>
 
-              {/* Rainbow ring */}
-              <circle
-                cx="100"
-                cy="100"
-                r="85"
-                fill="none"
-                stroke="url(#rainbow)"
-                strokeWidth="3"
-                opacity="0.6"
-                className="animate-pulse"
-              />
-
-              <defs>
-                <radialGradient id="bubbleGradient">
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.4" />
-                  <stop offset="50%" stopColor="#a855f7" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#ec4899" stopOpacity="0.5" />
-                </radialGradient>
-
-                <linearGradient
-                  id="bubbleStroke"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#06b6d4" />
-                  <stop offset="50%" stopColor="#a855f7" />
-                  <stop offset="100%" stopColor="#ec4899" />
-                </linearGradient>
-
-                <linearGradient
-                  id="rainbow"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#ff0080" />
-                  <stop offset="25%" stopColor="#ff8c00" />
-                  <stop offset="50%" stopColor="#40e0d0" />
-                  <stop offset="75%" stopColor="#9370db" />
-                  <stop offset="100%" stopColor="#ff0080" />
-                </linearGradient>
-              </defs>
-            </svg>
-
-            <div className="mt-4 text-center relative z-10">
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                AI Bubble Heat
-              </div>
-              <div className="text-lg font-semibold flex items-center justify-center gap-2">
-                {heat > 0 ? (
-                  <>
-                    <TrendingUp className="w-4 h-4 text-emerald-500" />
-                    <span className="text-emerald-500">
-                      +{heat.toFixed(2)}%
-                    </span>
-                  </>
-                ) : heat < 0 ? (
-                  <>
-                    <TrendingDown className="w-4 h-4 text-rose-500" />
-                    <span className="text-rose-500">
-                      {heat.toFixed(2)}%
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Activity className="w-4 h-4 text-slate-500" />
-                    <span className="text-slate-500">Flat</span>
-                  </>
-                )}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Avg intraday move across {TICKERS.length} AI names
+              <div className="mt-6 text-center">
+                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+                  Bubble Heat
+                </div>
+                <div className="text-2xl font-bold mb-1">{heatLabel}</div>
+                <div className="text-lg flex items-center justify-center gap-2">
+                  {heat > 0 ? (
+                    <>
+                      <TrendingUp className="w-5 h-5 text-emerald-400" />
+                      <span className="text-emerald-400">
+                        +{heat.toFixed(2)}%
+                      </span>
+                    </>
+                  ) : heat < 0 ? (
+                    <>
+                      <TrendingDown className="w-5 h-5 text-rose-400" />
+                      <span className="text-rose-400">
+                        {heat.toFixed(2)}%
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Activity className="w-5 h-5 text-slate-400" />
+                      <span className="text-slate-400">Flat</span>
+                    </>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-2">
+                  Avg across {TICKERS.length} AI names
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Stats panel */}
+          {/* Stats Panel */}
           <div className="space-y-4">
-            <div className="bg-white shadow-sm rounded-xl p-4 border border-slate-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-slate-700">
-                  Market Snapshot
-                </span>
+            {/* Market Snapshot */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Market Snapshot</h2>
                 <span className="text-xs text-slate-400">
                   {loading
                     ? "Loading…"
                     : error
                     ? "Degraded"
-                    : asOf
-                    ? `Updated ${new Date(asOf).toLocaleTimeString()}`
-                    : "—"}
+                    : provider}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-3 text-sm">
+              {error && (
+                <div className="mb-4 text-sm text-rose-400 bg-rose-900/20 border border-rose-800 rounded-lg p-3">
+                  {error}
+                </div>
+              )}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <div className="text-xs text-slate-500">Symbols</div>
-                  <div className="text-lg font-semibold">
+                  <div className="text-xs text-slate-400 mb-1">Symbols</div>
+                  <div className="text-2xl font-bold">
                     {allQuotes.length || TICKERS.length}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-slate-500">Up / Down</div>
-                  <div className="text-lg font-semibold">
-                    <span className="text-emerald-600">{up}</span>
-                    <span className="text-slate-400"> / </span>
-                    <span className="text-rose-600">{down}</span>
+                  <div className="text-xs text-slate-400 mb-1">Up / Down</div>
+                  <div className="text-2xl font-bold">
+                    <span className="text-emerald-400">{up}</span>
+                    <span className="text-slate-500 mx-1">/</span>
+                    <span className="text-rose-400">{down}</span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-slate-500">Provider</div>
-                  <div className="text-sm font-medium text-slate-700">
-                    {provider}
+                  <div className="text-xs text-slate-400 mb-1">Total</div>
+                  <div className="text-2xl font-bold text-slate-300">
+                    {TICKERS.length}
                   </div>
                 </div>
               </div>
-              {error && (
-                <div className="mt-3 text-xs text-rose-500">
-                  {error} (falling back to last good snapshot)
-                </div>
-              )}
             </div>
 
-            <div className="bg-white shadow-sm rounded-xl p-4 border border-slate-200">
-              <div className="text-sm font-semibold text-slate-700 mb-3">
-                Extremes Today
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-xs text-slate-500 mb-1">
-                    Strongest
-                  </div>
+            {/* Extremes */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+              <h2 className="text-lg font-semibold mb-4">Extremes Today</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-emerald-900/20 border border-emerald-800/50 rounded-lg p-4">
+                  <div className="text-xs text-slate-400 mb-2">Strongest</div>
                   {best ? (
-                    <div>
-                      <div className="font-semibold">{best.ticker}</div>
-                      <div className="text-xs text-emerald-600">
+                    <>
+                      <div className="text-xl font-bold mb-1">{best.ticker}</div>
+                      <div className="text-emerald-400 font-semibold">
                         +{best.changePct.toFixed(2)}%
                       </div>
-                    </div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        ${best.price.toFixed(2)}
+                      </div>
+                    </>
                   ) : (
-                    <div className="text-xs text-slate-400">—</div>
+                    <div className="text-slate-500">—</div>
                   )}
                 </div>
-                <div>
-                  <div className="text-xs text-slate-500 mb-1">
-                    Weakest
-                  </div>
+                <div className="bg-rose-900/20 border border-rose-800/50 rounded-lg p-4">
+                  <div className="text-xs text-slate-400 mb-2">Weakest</div>
                   {worst ? (
-                    <div>
-                      <div className="font-semibold">{worst.ticker}</div>
-                      <div className="text-xs text-rose-600">
+                    <>
+                      <div className="text-xl font-bold mb-1">{worst.ticker}</div>
+                      <div className="text-rose-400 font-semibold">
                         {worst.changePct.toFixed(2)}%
                       </div>
-                    </div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        ${worst.price.toFixed(2)}
+                      </div>
+                    </>
                   ) : (
-                    <div className="text-xs text-slate-400">—</div>
+                    <div className="text-slate-500">—</div>
                   )}
                 </div>
               </div>
@@ -298,62 +294,60 @@ export function AIBubbleDashboard() {
           </div>
         </div>
 
-        {/* Ticker grid */}
-        <div className="bg-white shadow-sm rounded-2xl border border-slate-200 p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm md:text-base font-semibold text-slate-800">
-              Underlying AI Complex
-            </h2>
-            <span className="text-xs text-slate-400">
-              {loading ? "Live… (refreshing)" : "Live prices"}
+        {/* Ticker Grid */}
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl p-6 md:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Underlying Names</h2>
+            <span className="text-sm text-slate-400">
+              {loading ? "Refreshing…" : "Live prices"}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {TICKERS.map((ticker) => {
               const q = quotes[ticker];
               const price = q?.price ?? null;
               const change = q?.changePct ?? 0;
               const isUp = change > 0;
+              const isDown = change < 0;
 
               return (
-                <div
+                <button
                   key={ticker}
-                  className="border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50/60"
+                  onClick={() => navigate(`/ticker/${ticker}`)}
+                  className="group bg-slate-700/30 border border-slate-600 rounded-xl p-4 hover:bg-slate-700/50 hover:border-cyan-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 text-left"
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-slate-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-slate-200">
                       {ticker}
                     </span>
-                    <span
-                      className={`text-[11px] font-medium ${
-                        change > 0
-                          ? "text-emerald-600"
-                          : change < 0
-                          ? "text-rose-600"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      {change === 0
-                        ? "0.00%"
-                        : `${isUp ? "+" : ""}${change.toFixed(2)}%`}
-                    </span>
+                    <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 transition-colors" />
                   </div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-xs text-slate-400 mb-1">
                     {price ? `$${price.toFixed(2)}` : "—"}
                   </div>
-                </div>
+                  <div
+                    className={`text-sm font-semibold ${
+                      isUp
+                        ? "text-emerald-400"
+                        : isDown
+                        ? "text-rose-400"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    {change === 0
+                      ? "0.00%"
+                      : `${isUp ? "+" : ""}${change.toFixed(2)}%`}
+                  </div>
+                </button>
               );
             })}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6 text-gray-400 text-xs">
-          <p>
-            For entertainment / research only. Not investment advice.
-          </p>
-          <p className="mt-1">🎅 Santa tracker, but for AI hype 🫧</p>
+        <div className="text-center mt-12 text-slate-500 text-sm">
+          <p>For entertainment / research only. Not investment advice.</p>
         </div>
       </div>
     </div>
