@@ -1,13 +1,15 @@
-import "./App.css";
-// (optional) you can remove this if you’re not using it anymore
-// import MarketDemo from "./assets/lib/MarketDemo"; 
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AIBubbleDashboard } from "./components/AIBubbleDashboard";
+import { TickerPage } from "./components/TickerPage";
+import "./App.css";
 
 export default function App() {
   return (
-    <div style={{ padding: 16 }}>
-      <AIBubbleDashboard />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AIBubbleDashboard />} />
+        <Route path="/ticker/:symbol" element={<TickerPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
