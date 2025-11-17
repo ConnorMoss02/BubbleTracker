@@ -5,8 +5,9 @@ import { fetchFromFinnhub } from "./providers/finnhub.ts";
 import { fetchFromMock } from "./providers/mock.ts";
 
 export const TICKERS: string[] = [
-  "MSFT","NVDA","ORCL","AMD","COIN","HOOD","RIOT","MARA","MSTR",
-  "ARM","CRUS","RDDT","CCJ","XOM","NEM","GOLD","AMLP"
+    "NVDA","AMD","AVGO","TSM","SMCI",  // GPU
+    "MSFT", "GOOGL", "META", "AMZN", "INTC", "ARM", "TSLA", // Hyperscalers
+    "PLTR","SNOW", "CRWV","AI", // AI Platforms
 ];
 
 // --- provider selection ---
