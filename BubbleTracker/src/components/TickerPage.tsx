@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useMarketData } from "../assets/lib/useMarketData";
+import { useMarket } from "../assets/lib/StockProvider";
 import { fetchCompanyNews } from "../lib/news";
 import type { CompanyNews } from "../types/newsType";
 import { ArrowLeft, TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
@@ -11,11 +11,14 @@ export function TickerPage() {
   const [news, setNews] = useState<CompanyNews | null>(null);
   const [newsLoading, setNewsLoading] = useState(true);
 
-  // Fetch quote data for this single ticker
-  const { snapshot, loading, error } = useMarketData({
-    intervalMs: 30000, // 30s polling for detail page
-    tickers: symbol ? [symbol] : [],
-  });
+  // Use provider-managed snapshot instead of creating a fresh polling hook per page
+  const { snapshot, loading, error, ensurePrices } = useMarket();
+
+  // Ensure we have the quote for this symbol (fetch if missing)
+  useEffect(() => {
+    if (!symbol) return;
+    ensurePrices([symbol]);
+  }, [symbol, ensurePrices]);
 
   // Fetch news when symbol changes
   useEffect(() => {
@@ -176,4 +179,3 @@ export function TickerPage() {
     </div>
   );
 }
-
