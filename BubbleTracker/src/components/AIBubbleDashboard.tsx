@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMarketData } from "../assets/lib/useMarketData";
+import { useMarket } from "../assets/lib/StockProvider";
 import type { Quote } from "../types/marketType";
 import { TICKERS } from "../lib/market";
 import { TrendingUp, TrendingDown, Activity, ArrowUpRight } from "lucide-react";
@@ -27,10 +27,7 @@ function getHeatLabel(heat: number): string {
 
 export function AIBubbleDashboard() {
   const navigate = useNavigate();
-  const { snapshot, loading, error } = useMarketData({
-    intervalMs: 15000, // 15s polling
-    tickers: TICKERS,
-  });
+  const { snapshot, loading, error } = useMarket();
 
   const quotes = snapshot?.quotes ?? {};
   const heat = computeHeat(quotes);
@@ -315,7 +312,7 @@ export function AIBubbleDashboard() {
                 <button
                   key={ticker}
                   onClick={() => navigate(`/ticker/${ticker}`)}
-                  className="group bg-slate-700/30 border border-slate-600 rounded-xl p-4 hover:bg-slate-700/50 hover:border-cyan-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1 text-left"
+                  className="group bg-slate-700/30 border border-slate-600 rounded-xl p-4 hover:bg-slate-700/50 hover:border-cyan-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-5[...]"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-bold text-slate-200">
