@@ -58,7 +58,7 @@ function persistSnapshot(s: MarketSnapshot | null) {
 export function StockProvider({ children }: { children: React.ReactNode }) {
   // Use the existing hook for background polling of the main TICKERS list.
   const { snapshot: liveSnapshot, loading: liveLoading, error: liveError } = useMarketData({
-    intervalMs: 5000,
+    intervalMs: 30000,
     tickers: TICKERS,
   });
 
