@@ -16,9 +16,12 @@ export function TickerPage() {
 
   // Ensure we have the quote for this symbol (fetch if missing)
   useEffect(() => {
-    if (!symbol) return;
+  if (!symbol) return;
+  const hasQuote = snapshot?.quotes?.[symbol];
+  if (!hasQuote) {
     ensurePrices([symbol]);
-  }, [symbol, ensurePrices]);
+  }
+}, [symbol, snapshot, ensurePrices]);
 
   // Fetch news when symbol changes
   useEffect(() => {
